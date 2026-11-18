@@ -42,7 +42,7 @@ Move to your colcon workspace and run
 
 `git clone --recurse-submodules git@github.com:MAPIRlab/gaden.git src/gaden`
 
-It is important that you include the `--recurse-submodules` option, as the gaden repository includes submodules. if you already cloned in a non-recursive manner you can fix the problem by running 
+It is important that you include the `--recurse-submodules` option, as the gaden repository includes submodules. if you already cloned in a non-recursive manner you can fix the problem by running
 
 `git submodule update --init --recursive`
 
@@ -53,3 +53,111 @@ Although GADEN is a self-contained pkg, the also included "simulated_sensor_pkgs
 See the [tutorial](GADEN_tutorial.md) for instructions on how to set up a simulation of your own or use the included [test environments](test_env).
 
 Users who want to test their algorithms in complex environments but do not need to simulate any specific scenario can find an extensive repository of existing simulations in the [VGR dataset](https://mapir.isa.uma.es/mapirwebsite/?p=1708), which features simulations in 3D models of real houses, along with the configuration files and intermediate data.
+---
+
+PLUME Robotics Extension
+
+This repository is the PLUME Robotics fork of [MAPIRlab GADEN](https://github.com/MAPIRlab/gaden).
+
+The PLUME development branch is:
+
+```text
+plume/pipe-inspection
+```
+
+The fork extends the original GADEN ROS 2 simulator to support the PLUME pipe-inspection scenario and independently controlled gas sources.
+
+## Pipe Inspection Scenario
+
+The PLUME scenario is located at:
+
+```text
+test_env/scenarios/pipe_inspection/
+```
+
+It contains the CAD models, environment configuration, scene configuration, wind data and simulation configuration required for the pipe-inspection environment.
+
+The simulation defines two point gas sources:
+
+| Source | Position (x, y, z) | Gas type |
+|---|---|---|
+| Left | (-1.25, 0.0, 0.97) | 0 |
+| Right | (1.25, 0.0, 0.97) | 0 |
+
+The simulation configuration is located at:
+
+```text
+test_env/scenarios/pipe_inspection/environment_configurations/config1/simulations/sim1/sim.yaml
+```
+
+## Multi-Source Control
+
+The PLUME fork extends the filament simulator with two ROS 2 Boolean subscriptions:
+
+| Topic | Function |
+|---|---|
+| `/gaden/source_left_enabled` | Controls the left gas source |
+| `/gaden/source_right_enabled` | Controls the right gas source |
+
+The messages use:
+
+```text
+std_msgs/msg/Bool
+```
+
+The subscriptions call the corresponding source-enable functionality in GADEN Core:
+
+- Source index `0`: left source.
+- Source index `1`: right source.
+
+This allows the gas sources to be controlled independently while the simulation is running.
+
+The simulator also publishes a visual marker for each source, using unique marker IDs.
+
+## Simulation Rate
+
+The PLUME simulation launch file sets:
+
+```python
+limitRate = True
+runRate = 10.0
+```
+
+This limits the simulation execution rate to 10 Hz.
+
+## GADEN Core Dependency
+
+This fork uses the PLUME Robotics GADEN Core fork rather than the original upstream Core repository.
+
+The Core submodule uses the PLUME multi-source implementation, introduced in commit eb8787d.
+
+```text
+Repository: https://github.com/PLUME-Robotics/gaden_core
+Branch:     plume/multi-source
+Implementation commit: eb8787d
+```
+
+The Core extension provides the multi-source functionality required by the PLUME simulator.
+
+## Running the Pipe Inspection Scenario
+
+Build the GADEN packages in a ROS 2 Jazzy workspace, then source the workspace.
+
+Preprocess the scenario first:
+
+```bash
+ros2 launch test_env gaden_preproc_launch.py \
+    scenario:=pipe_inspection \
+    configuration:=config1
+```
+
+After preprocessing completes, start the simulation:
+
+```bash
+ros2 launch test_env gaden_sim_launch.py \
+    scenario:=pipe_inspection \
+    configuration:=config1 \
+    simulation:=sim1
+```
+
+For the complete project setup, including Gazebo, the ROS-Gazebo bridge and the valve controller, refer to the main [PLUME Simulation repository](https://github.com/PLUME-Robotics/Simulation).
