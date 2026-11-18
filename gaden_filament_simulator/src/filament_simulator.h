@@ -6,6 +6,7 @@
 #include <geometry_msgs/msg/point_stamped.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <visualization_msgs/msg/marker_array.hpp>
+#include <std_msgs/msg/bool.hpp>
 
 using visualization_msgs::msg::Marker;
 using visualization_msgs::msg::MarkerArray;
@@ -35,6 +36,10 @@ private:
     std::optional<gaden::RunningSimulation> sim;
 
     rclcpp::Subscription<geometry_msgs::msg::PointStamped>::SharedPtr rotorPositionSub;
+
+    rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr sourceLeftEnabledSub;
+    rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr sourceRightEnabledSub;
+
     rclcpp::Publisher<Marker>::SharedPtr gasPublisher;
     rclcpp::Publisher<MarkerArray>::SharedPtr sourcePublisher;
 };

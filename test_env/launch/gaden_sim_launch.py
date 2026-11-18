@@ -73,7 +73,8 @@ def launch_setup(context, *args, **kwargs):
             output='screen',
             parameters=[ParameterFile(params_yaml_file, allow_substs=True),
                         {"sim_time": 300.0},
-                        {"runRate": 0.0}
+                        {"limitRate": True},
+                        {"runRate": 10.0}
                         ]
         )
     ]

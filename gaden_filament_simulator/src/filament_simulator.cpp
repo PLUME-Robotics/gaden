@@ -133,6 +133,29 @@ void FilamentSimulator::Run()
     }
 
     sim.emplace(params, envConfig);
+    sourceLeftEnabledSub =
+        create_subscription<std_msgs::msg::Bool>(
+            "/gaden/source_left_enabled",
+            10,
+            [this](const std_msgs::msg::Bool::SharedPtr msg)
+            {
+                if (sim)
+                {
+                    sim->SetSourceEnabled(0, msg->data);
+                }
+            });
+
+    sourceRightEnabledSub =
+        create_subscription<std_msgs::msg::Bool>(
+            "/gaden/source_right_enabled",
+            10,
+            [this](const std_msgs::msg::Bool::SharedPtr msg)
+            {
+                if (sim)
+                {
+                    sim->SetSourceEnabled(1, msg->data);
+                }
+            });
     sim->gasDisplayColor = {.r = 0, .g = 0, .b = 1, .a = 1}; // do we want to bother reading this as a parameter?
 
     // old launch files require the wind data to be copied inside the results folder
@@ -213,8 +236,25 @@ void FilamentSimulator::publishMarkers(std::vector<Filament> const& filaments)
     // Publish marker of the filaments
     gasPublisher->publish(filament_marker);
 
-    Marker sourceMarker = GadenUtils::MarkerSourcePosition(this, *sim);
-    sourcePublisher->publish(MarkerArray().set__markers({sourceMarker}));
+    MarkerArray sourceMarkers;
+
+    for (size_t i = 0; i < sim->GetParameters().sources.size(); ++i)
+    {
+        Marker sourceMarker = GadenUtils::MarkerSourcePosition(this, *sim);
+
+        sourceMarker.id = static_cast<int>(i);
+
+        sourceMarker.pose.position.x =
+            sim->GetParameters().sources[i]->sourcePosition.x;
+        sourceMarker.pose.position.y =
+            sim->GetParameters().sources[i]->sourcePosition.y;
+        sourceMarker.pose.position.z =
+            sim->GetParameters().sources[i]->sourcePosition.z;
+
+        sourceMarkers.markers.push_back(sourceMarker);
+    }
+
+    sourcePublisher->publish(sourceMarkers);
 }
 
 // at different times, gaden has employed multiple rules for where to store / how to name wind files

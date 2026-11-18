@@ -1,0 +1,14 @@
+models:
+  - ../../cad_models/pipe_inspection.stl
+  - ../../cad_models/ground.stl
+
+outlets_models:
+  - "!color [0.89, 0.27, 0.27, 1.00]"
+  - ../../cad_models/domain_outlets.stl
+
+unprocessed_wind_files: ../../wind_simulations/uniform/wind_at_cell_centers
+
+empty_point: [0, 1, 1.2]
+
+cell_size: 0.05
+uniformWind: true
